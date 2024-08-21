@@ -14,7 +14,6 @@ class CharityProjectBase(BaseModel):
         min_anystr_length = 1
 
 
-# class CharityProjectCreate(CharityProjectBase):
 class CharityProjectCreate(BaseModel):
     name: str = Field(..., max_length=100)
     description: str = Field(...)
@@ -26,13 +25,6 @@ class CharityProjectCreate(BaseModel):
 
 class CharityProjectUpdate(CharityProjectBase):
     pass
-
-
-#     @validator('name')
-#     def validate_name(cls, value):
-#         if value is None:
-#             raise ValueError('Название переговорки не может быть пустым')
-#         return value
 
 
 class CharityProjectDB(CharityProjectCreate):

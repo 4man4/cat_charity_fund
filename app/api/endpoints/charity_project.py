@@ -87,15 +87,3 @@ async def remove_charity_project(
     check_project_already_invested(project)
     project = await charity_project_crud.remove(project, session)
     return project
-
-
-# @router.get('/{project_id}/donations', response_model=list[DonationDB])
-# async def get_donations_for_project(
-#     project_id: int,
-#     session: AsyncSession = Depends(get_async_session),
-# ):
-#     await check_project_exists(project_id, session)
-#     donations = await donation_crud.get_future_reservations_for_room(
-#         project_id=project_id, session=session
-#     )
-#     return donations
