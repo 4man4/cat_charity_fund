@@ -5,7 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
 from app.crud.donation import donation_crud
-from app.crud.investments import investments_process
+from app.core.services import (
+    create_object,
+    get_all_objects,
+    get_user_objects,
+)
 from app.schemas.donation import DonationCreate, DonationDB, DonationBase
 from app.core.user import current_user, current_superuser
 from app.models import CharityProject, User
@@ -24,9 +28,9 @@ async def create_donation(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user),
 ):
-    new_donation = await donation_crud.create(donation, session, user)
-    await investments_process(new_donation, CharityProject, session)
-    return new_donation
+    return await create_object(
+        donation, donation_crud, CharityProject, session, user
+    )
 
 
 @router.get(
@@ -39,8 +43,7 @@ async def get_all_donations(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Только для суперюзеров."""
-    all_donations = await donation_crud.get_multi(session)
-    return all_donations
+    return await get_all_objects(donation_crud, session)
 
 
 @router.get(
@@ -53,7 +56,4 @@ async def get_my_donations(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Получает список всех пожертвований для текущего пользователя."""
-    donations = await donation_crud.get_donations_by_user(
-        user=user, session=session
-    )
-    return donations
+    return await get_user_objects(donation_crud, user, session)

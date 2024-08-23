@@ -4,15 +4,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_async_session
 from app.api.validators import (
     check_name_duplicate,
-    check_project_exists,
-    check_project_closed,
-    check_project_invested_sum,
-    check_project_already_invested,
 )
-from app.crud.charity_project import charity_project_crud
-from app.crud.investments import investments_process
+from app.crud import charity_project_crud
+from app.core.services import (
+    investments_process,
+    get_all_objects,
+    partially_update_object,
+    delete_object,
+)
 from app.models import Donation
-from app.schemas.charity_project import (
+from app.schemas import (
     CharityProjectCreate,
     CharityProjectDB,
     CharityProjectUpdate,
@@ -47,8 +48,7 @@ async def create_new_charity_project(
 async def get_all_charity_projects(
     session: AsyncSession = Depends(get_async_session),
 ):
-    all_projects = await charity_project_crud.get_multi(session)
-    return all_projects
+    return await get_all_objects(charity_project_crud, session)
 
 
 @router.patch(
@@ -62,14 +62,9 @@ async def partially_update_charity_project(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Только для суперюзеров."""
-    project = await check_project_exists(project_id, session)
-    check_project_closed(project)
-    if obj_in.name:
-        await check_name_duplicate(obj_in.name, session)
-    if obj_in.full_amount:
-        check_project_invested_sum(project, obj_in.full_amount)
-    project = await charity_project_crud.update(project, obj_in, session)
-    return project
+    return await partially_update_object(
+        project_id, obj_in, charity_project_crud, session
+    )
 
 
 @router.delete(
@@ -83,7 +78,4 @@ async def remove_charity_project(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Только для суперюзеров."""
-    project = await check_project_exists(project_id, session)
-    check_project_already_invested(project)
-    project = await charity_project_crud.remove(project, session)
-    return project
+    return await delete_object(project_id, charity_project_crud, session)

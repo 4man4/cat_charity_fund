@@ -63,17 +63,3 @@ class CRUDBase:
         await session.delete(db_obj)
         await session.commit()
         return db_obj
-
-    # Для нашего проекта этот метод избыточен, но в своих реальных
-    # проектах он может вам пригодиться, поэтому берите на заметку
-    # async def get_by_attribute(
-    #         self,
-    #         attr_name: str,
-    #         attr_value: str,
-    #         session: AsyncSession,
-    # ):
-    #     attr = getattr(self.model, attr_name)
-    #     db_obj = await session.execute(
-    #         select(self.model).where(attr == attr_value)
-    #     )
-    #     return db_obj.scalars().first()

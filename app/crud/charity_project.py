@@ -11,14 +11,15 @@ class CRUDCharityProject(CRUDBase):
 
     async def get_project_id_by_name(
         self,
-        room_name: str,
+        project_name: str,
         session: AsyncSession,
     ) -> Optional[int]:
         db_room_id = await session.execute(
-            select(CharityProject.id).where(CharityProject.name == room_name)
+            select(CharityProject.id).where(
+                CharityProject.name == project_name
+            )
         )
-        db_room_id = db_room_id.scalars().first()
-        return db_room_id
+        return db_room_id.scalars().first()
 
 
 charity_project_crud = CRUDCharityProject(CharityProject)
