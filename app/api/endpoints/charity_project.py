@@ -2,16 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
-from app.api.validators import (
-    check_name_duplicate,
-)
 from app.crud import charity_project_crud
-from app.core.services import (
-    investments_process,
-    get_all_objects,
-    partially_update_object,
-    delete_object,
-)
+from app.services.services import Services
 from app.models import Donation
 from app.schemas import (
     CharityProjectCreate,
@@ -34,10 +26,9 @@ async def create_new_charity_project(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Только для суперюзеров."""
-    await check_name_duplicate(project.name, session)
-    new_project = await charity_project_crud.create(project, session)
-    await investments_process(new_project, Donation, session)
-    return new_project
+    return await Services.create_object(
+        project, charity_project_crud, Donation, session
+    )
 
 
 @router.get(
@@ -48,7 +39,7 @@ async def create_new_charity_project(
 async def get_all_charity_projects(
     session: AsyncSession = Depends(get_async_session),
 ):
-    return await get_all_objects(charity_project_crud, session)
+    return await Services.get_all_objects(charity_project_crud, session)
 
 
 @router.patch(
@@ -62,7 +53,7 @@ async def partially_update_charity_project(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Только для суперюзеров."""
-    return await partially_update_object(
+    return await Services.partially_update_object(
         project_id, obj_in, charity_project_crud, session
     )
 
@@ -78,4 +69,6 @@ async def remove_charity_project(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Только для суперюзеров."""
-    return await delete_object(project_id, charity_project_crud, session)
+    return await Services.delete_object(
+        project_id, charity_project_crud, session
+    )
