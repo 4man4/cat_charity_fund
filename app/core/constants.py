@@ -1,2 +1,4 @@
-charity_project_name_max_len = 100
-invested_amount_to_prohibit_deletion = 0
+CHARITY_PROJECT_NAME_MAX_LEN = 100
+CHARITY_PROJECT_MIN_ANYSTR_LEN = 1
+INVESTED_AMOUNT_DEFAULT = 0
+INVESTED_AMOUNT_TO_PROHIBIT_DELETION = 0

@@ -38,8 +38,8 @@ class CRUDBase:
         await session.refresh(db_obj)
         return db_obj
 
+    @staticmethod
     async def update(
-        self,
         db_obj,
         obj_in,
         session: AsyncSession,
@@ -55,8 +55,8 @@ class CRUDBase:
         await session.refresh(db_obj)
         return db_obj
 
+    @staticmethod
     async def remove(
-        self,
         db_obj,
         session: AsyncSession,
     ):
