@@ -1,25 +1,17 @@
 from datetime import datetime
 from http import HTTPStatus
-from typing import List, Union, Tuple, Type, Optional
+from typing import List, Union, Tuple, Type
 
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.constants import INVESTED_AMOUNT_TO_PROHIBIT_DELETION
-from app.core.db import get_async_session
-from app.core.user import current_user
-from app.crud import CRUDBase, charity_project_crud
-from app.crud.donation import CRUDDonation
-from app.models import CharityProject, Donation, User
-from app.schemas import (
-    CharityProjectCreate,
-    DonationBase,
-    CharityProjectUpdate,
-)
+from app.crud import charity_project_crud
+from app.models import CharityProject, Donation
 
 
-class CatCharityServices:
+class BaseServices:
     @staticmethod
     async def _check_name_duplicate(
         project_name: str,
@@ -36,10 +28,8 @@ class CatCharityServices:
 
     @staticmethod
     async def _check_project_exists(
-        project_id: int,
-        session: AsyncSession,
+        project: CharityProject,
     ) -> None:
-        project = await charity_project_crud.get(project_id, session)
         if not project:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
@@ -70,8 +60,8 @@ class CatCharityServices:
         charity_project: CharityProject,
     ) -> None:
         if (
-            charity_project.invested_amount
-            > INVESTED_AMOUNT_TO_PROHIBIT_DELETION
+            charity_project.invested_amount >
+                INVESTED_AMOUNT_TO_PROHIBIT_DELETION
         ):
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
@@ -134,62 +124,3 @@ class CatCharityServices:
         await session.commit()
         await session.refresh(obj_in)
         return obj_in
-
-    @classmethod
-    async def create_object(
-        cls,
-        obj_in: Union[CharityProjectCreate, DonationBase],
-        crud_class: Type[CRUDBase],
-        model: Type[Union[CharityProject, Donation]],
-        session: AsyncSession = Depends(get_async_session),
-        user: Optional[User] = None,
-    ):
-        if crud_class == charity_project_crud:
-            await cls._check_name_duplicate(obj_in.name, session)
-        new_object = await crud_class.create(obj_in, session, user)
-        await cls._investments_process(new_object, model, session)
-        return new_object
-
-    @staticmethod
-    async def get_all_objects(
-        crud_class: Type[CRUDBase],
-        session: AsyncSession = Depends(get_async_session),
-    ):
-        return await crud_class.get_multi(session)
-
-    @classmethod
-    async def partially_update_object(
-        cls,
-        obj_id: int,
-        obj_in: CharityProjectUpdate,
-        crud_class: Type[CRUDBase],
-        session: AsyncSession = Depends(get_async_session),
-    ):
-        await cls._check_project_exists(obj_id, session)
-        obj = await crud_class.get(obj_id, session)
-        cls._check_project_closed(obj)
-        if obj_in.name:
-            await cls._check_name_duplicate(obj_in.name, session)
-        if obj_in.full_amount:
-            cls._check_project_invested_sum(obj, obj_in.full_amount)
-        return await crud_class.update(obj, obj_in, session)
-
-    @classmethod
-    async def delete_object(
-        cls,
-        obj_id: int,
-        crud_class: Type[CRUDBase],
-        session: AsyncSession = Depends(get_async_session),
-    ):
-        await cls._check_project_exists(obj_id, session)
-        obj = await crud_class.get(obj_id=obj_id, session=session)
-        cls._check_project_already_invested(obj)
-        return await crud_class.remove(db_obj=obj, session=session)
-
-    @staticmethod
-    async def get_user_objects(
-        crud_class: Type[CRUDDonation],
-        user: User = Depends(current_user),
-        session: AsyncSession = Depends(get_async_session),
-    ):
-        return await crud_class.get_donations_by_user(user, session)
