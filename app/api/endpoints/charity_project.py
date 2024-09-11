@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
 from app.crud import charity_project_crud
-from app.services.charity_project import CharityProjectServices
+from app.services.charity_project import CharityProjectService
 from app.models import Donation
 from app.schemas import (
     CharityProjectCreate,
@@ -26,7 +26,7 @@ async def create_new_charity_project(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Только для суперюзеров."""
-    return await CharityProjectServices.create_charity_project(
+    return await CharityProjectService.create_charity_project(
         project, Donation, session
     )
 
@@ -39,7 +39,7 @@ async def create_new_charity_project(
 async def get_all_charity_projects(
     session: AsyncSession = Depends(get_async_session),
 ):
-    return await CharityProjectServices.get_all_charity_projects(session)
+    return await CharityProjectService.get_all_charity_projects(session)
 
 
 @router.patch(
@@ -54,7 +54,8 @@ async def partially_update_charity_project(
 ):
     """Только для суперюзеров."""
     project = await charity_project_crud.get(project_id, session)
-    return await CharityProjectServices.partially_update_charity_project(
+    await CharityProjectService.check_project_exists(project)
+    return await CharityProjectService.partially_update_charity_project(
         project, obj_in, session
     )
 
@@ -70,6 +71,6 @@ async def remove_charity_project(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Только для суперюзеров."""
-    return await CharityProjectServices.delete_charity_project(
-        project_id, session
-    )
+    project = await charity_project_crud.get(project_id, session)
+    await CharityProjectService.check_project_exists(project)
+    return await CharityProjectService.delete_charity_project(project, session)

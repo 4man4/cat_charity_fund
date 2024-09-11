@@ -11,7 +11,17 @@ from app.crud import charity_project_crud
 from app.models import CharityProject, Donation
 
 
-class BaseServices:
+class BaseService:
+    @staticmethod
+    async def check_project_exists(
+        project: CharityProject,
+    ) -> None:
+        if not project:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='Целевой проект не найден!',
+            )
+
     @staticmethod
     async def _check_name_duplicate(
         project_name: str,
@@ -24,16 +34,6 @@ class BaseServices:
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail='Проект с таким именем уже существует!',
-            )
-
-    @staticmethod
-    async def _check_project_exists(
-        project: CharityProject,
-    ) -> None:
-        if not project:
-            raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND,
-                detail='Целевой проект не найден!',
             )
 
     @staticmethod

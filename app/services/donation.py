@@ -8,10 +8,10 @@ from app.core.user import current_user
 from app.crud import donation_crud
 from app.models import Donation, User
 from app.schemas import DonationBase
-from app.services.base import BaseServices
+from app.services.base import BaseService
 
 
-class DonationServices(BaseServices):
+class DonationService(BaseService):
     @classmethod
     async def create_donation(
         cls,

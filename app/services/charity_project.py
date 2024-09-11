@@ -7,10 +7,10 @@ from app.core.db import get_async_session
 from app.crud import charity_project_crud
 from app.models import CharityProject
 from app.schemas import CharityProjectCreate, CharityProjectUpdate
-from app.services.base import BaseServices
+from app.services.base import BaseService
 
 
-class CharityProjectServices(BaseServices):
+class CharityProjectService(BaseService):
     @classmethod
     async def create_charity_project(
         cls,
@@ -36,7 +36,6 @@ class CharityProjectServices(BaseServices):
         obj_in: CharityProjectUpdate,
         session: AsyncSession = Depends(get_async_session),
     ):
-        await cls._check_project_exists(obj)
         cls._check_project_closed(obj)
         if obj_in.name:
             await cls._check_name_duplicate(obj_in.name, session)
@@ -47,10 +46,8 @@ class CharityProjectServices(BaseServices):
     @classmethod
     async def delete_charity_project(
         cls,
-        obj_id: int,
+        obj: CharityProject,
         session: AsyncSession = Depends(get_async_session),
     ):
-        obj = await charity_project_crud.get(obj_id=obj_id, session=session)
-        await cls._check_project_exists(obj)
         cls._check_project_already_invested(obj)
         return await charity_project_crud.remove(db_obj=obj, session=session)
