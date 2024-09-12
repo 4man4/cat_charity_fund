@@ -1,8 +1,7 @@
 from datetime import datetime
-from http import HTTPStatus
 from typing import List, Union, Tuple, Type
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,16 +12,6 @@ from app.models import CharityProject, Donation
 
 class BaseService:
     @staticmethod
-    async def check_project_exists(
-        project: CharityProject,
-    ) -> None:
-        if not project:
-            raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND,
-                detail='Целевой проект не найден!',
-            )
-
-    @staticmethod
     async def _check_name_duplicate(
         project_name: str,
         session: AsyncSession,
@@ -32,7 +21,7 @@ class BaseService:
         )
         if project_id:
             raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Проект с таким именем уже существует!',
             )
 
@@ -40,7 +29,7 @@ class BaseService:
     def _check_project_closed(charity_project: CharityProject) -> None:
         if charity_project.fully_invested:
             raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Закрытый проект нельзя редактировать!',
             )
 
@@ -50,7 +39,7 @@ class BaseService:
     ) -> None:
         if charity_project.invested_amount > new_amount:
             raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Нелья установить значение full_amount '
                 'меньше уже вложенной суммы.',
             )
@@ -64,7 +53,7 @@ class BaseService:
                 INVESTED_AMOUNT_TO_PROHIBIT_DELETION
         ):
             raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail='В проект были внесены средства, не подлежит удалению!',
             )
 
